@@ -1,0 +1,199 @@
+<template>
+<view class="cinema">
+  <view class="top">
+      <view class="city">
+          <view>{{city}}</view>
+          <view class="sanjiao"></view>
+      </view>
+      <navigator url="/pages/search">
+        <view class="search">
+          <icon type="search" size="14" color="#b2b2b2"/>
+          <text>搜影院</text>
+        </view>
+      </navigator>
+  </view>
+  <view class="nav">
+      <view class="items">
+          <view>全城</view>
+          <view class="sanjiao"></view>
+      </view>
+      <view class="items">
+          <view>品牌</view>
+          <view class="sanjiao"></view>
+      </view>
+      <view class="items">
+          <view>特色</view>
+          <view class="sanjiao"></view>
+      </view>
+  </view>
+  <view class="main">
+    <list :items.sync="items"/>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { connect } from 'wepy-redux'
+  import List from "../components/cinema-items";
+
+
+  export default class Cinema extends wepy.page {
+    config={
+      navigationBarTitleText:"影院"
+    }
+    data={
+      city:'',
+      Height:'',
+      items:[],
+      offset:0,
+      date:''
+    }
+    components={
+      list:List
+    }
+    methods={
+      // more(){
+      //   this.offset=this.offset+20
+      //   this.getitems(this.offset)
+      // },
+    }
+    events={
+      "getmore_cinema":(args)=>{
+        console.log(1)
+        this.offset=this.offset+20
+        this.getitems(this.offset)
+      }
+    }
+    getitems(offset){
+      let _this=this;
+      wx.showLoading()
+      wx.request({
+        url: 'http://m.maoyan.com/ajax/cinemaList',
+        data: {
+          day:this.date,
+          offset,
+          limit: 20,
+          districtId: -1,
+          lineId: -1,
+          hallType: -1,
+          brandId: -1,
+          serviceId: -1,
+          areaId: -1,
+          stationId: -1,
+          item:'',
+          updateShowDay: true,
+          reqId:'1533974904133',
+          cityId: 1
+        },
+        header: {
+          'content-type': 'application/json'
+        },
+        success: function(res) {
+          wx.hideLoading()
+          _this.items=[..._this.items,...res.data.cinemas]
+          _this.$apply()
+        }
+      })
+    }
+    onLoad(){
+      this.date=new Date().toLocaleDateString().replace(/\//g,'-')
+      let _this=this
+      wx.getLocation({
+        type: 'wgs84',
+        success(res){
+          let longitude = res.longitude
+          let latitude = res.latitude
+          wx.request({
+            url: 'https://api.map.baidu.com/geocoder/v2/?ak=GYz2Vp82csGhLw39EWmb6totQd0H5vBD&location=' + latitude + ',' + longitude + '&output=json',
+            header: {
+            'Content-Type': 'application/json'
+            },
+            success(result){
+              _this.city=result.data.result.addressComponent.city.substr(0,2)
+              _this.$apply();
+            }
+          })
+        }
+      })
+      this.Height=this.$parent.data.Height
+      this.getitems(0)
+    }
+
+  }
+</script>
+<style lang="less">
+.cinema{
+  .top{
+    width: 100%;
+    height:88rpx;
+    display:flex;
+    align-items: center;
+    justify-content: space-around;
+    border-bottom: 1px solid #e6e6e6;
+    background: #f5f5f5;
+    position:fixed;
+    top: 0;
+    z-index:100;
+    .city{
+      width: 114rpx;
+      height: 40rpx;
+      color: #666;
+      padding-left: 30rpx;
+      display: flex;
+      align-items: center;
+      font-size: 30rpx;
+    }
+    .search{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 56rpx;
+      width:570rpx;
+      font-size: 13px;
+      background: white;
+      color: #b2b2b2;
+      border-radius: 5px;
+    }
+  }
+  .nav{
+    width: 100%;
+    height:80rpx;
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e6e6e6;
+    position:fixed;
+    top:80rpx;
+    z-index:100;
+    background: white;
+    .items{
+      width:33.3333%;
+      height: 40rpx;
+      color: #666;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 30rpx;
+      border-left: 1px solid #e6e6e6;
+      &:nth-of-type(1){
+        border-left: none;
+      }
+    }
+  }
+  .main{
+    margin-top: 168rpx;
+  }
+  .sanjiao{
+    width: 0;
+    height: 0;
+    border: 4px solid #b0b0b0;
+    border-left-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    display: inline-block;
+    margin-left: 4px;
+    margin-top: 5px;
+  }
+}
+</style>

@@ -1,0 +1,67 @@
+<style lang="less">
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+
+import { setStore } from 'wepy-redux'
+import configStore from './store'
+
+const store = configStore()
+setStore(store)
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/my',
+      'pages/movie',
+      'pages/search',
+      'pages/cinema',
+      'pages/shows'
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#e54847'
+    },
+    tabBar: {
+      list: [{
+        pagePath: "pages/movie",
+        text: "电影",
+        iconPath:"assets/电影.png",
+        selectedIconPath:"assets/movie.png"
+        },{
+        pagePath: "pages/cinema",
+        text: "影院",
+        iconPath:"assets/影院.png",
+        selectedIconPath:"assets/cinema.png"
+        },{
+        pagePath: "pages/my",
+        text: "我的",
+        iconPath:"assets/我的.png",
+        selectedIconPath:"assets/my.png"
+        }],
+      selectedColor:'#e54847',
+      backgroundColor:'#fff'
+    }
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+    this.use('promisify')//将wepy中的api promise化;
+  }
+
+  onLaunch() {
+    let _this=this
+    wx.getSystemInfo({
+          success: function (res) {
+            _this.data.Height=res.windowHeight
+          }
+      })
+  }
+  data={
+    Height:''
+  }
+}
+</script>

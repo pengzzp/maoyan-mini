@@ -1,0 +1,268 @@
+<template>
+<view class="movie">
+  <view class="top">
+    <view class="city">
+        <view>{{city}}</view>
+        <view class="sanjiao"></view>
+    </view>
+    <view class="nav">
+      <view class="{{type=='hot'?'active':''}}" @tap="change(hot)">正在热映</view>
+      <view class="{{type!='hot'?'active':''}}" @tap="change(soon)">即将上映</view>
+    </view>
+    <view class="search" >
+      <icon type="search" size="20" color="#e54847"/>
+    </view>
+  </view>
+  <!--正咋热映------------------------------------- -->
+  <view wx:if="{{type=='hot'}}" class="hot"> 
+    <listyhot :items.sync="items_hot" from="hot" :isScroll="isScroll_hot"/>
+  </view>
+  <!--即将上映------------------------------------- -->
+  <view wx:else class="soon">
+    <scroll-view  
+      scroll-y
+      bindscrolltolower="more"
+      style="height:{{Height}}px"
+    >
+      <view class="expect">
+        <text class="title">近期最受期待</text>
+        <listx :items.sync="items_soon_x"/>
+      </view>
+      <listysoon :items.sync="items_soon_y" from="soon" :isScroll="isScroll_soon"/>
+    </scroll-view>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  // import { getStore } from 'wepy-redux'
+  // const store = getStore()
+  import { connect } from 'wepy-redux';
+  // import { GETITEMS_HOT } from '../store/types/movie'
+  import { getitems_hot } from '../store/actions'
+  // import List from "../components/list";
+  import Listy from "../components/items-y";
+  import Listx from "../components/items-x";
+
+  @connect(
+    {
+      items_hot(state){
+        return state.movie.items_hot
+      }
+    },
+    {
+      getitems_hot
+    }
+  )
+
+
+  export default class Index extends wepy.page {
+    config={
+      navigationBarTitleText:"猫眼电影"
+    }
+    data={
+      city:'',
+      type:'hot',
+      items:[],
+      items_soon_x:[],
+      items_soon_y:[],
+      isScroll_hot:true,
+      isScroll_soon:false,
+      Height:''
+    }
+    components = {
+      listyhot:Listy,
+      listx:Listx,
+      listysoon:Listy,
+    };
+    methods={
+      // 切换正在热映和即将上映板块
+      change(type){
+        this.type=type;
+        if(type=="soon"){
+          this.getitems_soon_x(0)
+          this.getitems_soon_y()
+        }
+      },
+      more(){
+        this.getitems_soon_y()
+      }
+    }
+    events={
+      "getmore":(args)=>{
+        this.methods.getitems_hot()
+      },
+      "getmore_soon_x":(args)=>{
+        if(args<=50){
+          this.getitems_soon_x(args)
+        }
+      }
+      
+    }
+    //获取正在热映，列表数据（改用redux了！！！！！！！！！！！！！！！）
+    // getitems(){
+    //   let _this=this;
+    //   wx.request({
+    //     url: 'http://m.maoyan.com/ajax/movieOnInfoList?token=',
+    //     data: {
+    //     },
+    //     header: {
+    //       'content-type': 'application/json'
+    //     },
+    //     success: function(res) {
+    //       res.data.movieList.forEach(item => {
+    //         item.img=item.img.replace(/w.h/,"128.180")
+    //       });
+    //       _this.items=[..._this.items,...res.data.movieList]
+    //       _this.$apply()
+    //     }
+    //   })
+    // }
+    //获取即将上映，近期最受期待列表数据
+    getitems_soon_x(offset){
+        wx.showLoading()
+        let _this=this;
+        wx.request({
+          url: `http://m.maoyan.com/ajax/mostExpected?ci=1&limit=10&offset=${offset}&token=`,
+          header: {
+            'content-type': 'application/json'
+          },
+          success: function(res) {
+            wx.hideLoading()
+            res.data.coming.forEach(item => {
+              item.img=item.img.replace(/w.h/,"128.180")
+            });
+            _this.items_soon_x=[..._this.items_soon_x,...res.data.coming]
+            _this.$apply()
+          }
+        })
+    }
+    //获取即将上映列表数据
+    getitems_soon_y(){
+      wx.showLoading()
+        let _this=this;
+        wx.request({
+          url: `http://m.maoyan.com/ajax/comingList?ci=1&token=&limit=10`,
+          header: {
+            'content-type': 'application/json'
+          },
+          success: function(res) {
+            wx.hideLoading()
+            res.data.coming.forEach(item => {
+              item.img=item.img.replace(/w.h/,"128.180")
+            });
+            _this.items_soon_y=[..._this.items_soon_y,...res.data.coming]
+            _this.$apply()
+          }
+        })
+    }
+    // watch = {
+    //   items_hot(curVal, oldVal) {
+    //     console.log(curVal,oldVal)
+    //   }
+    // }
+    onLoad(){
+      // console.log(this.items_hot)
+      let _this=this
+      wx.getLocation({
+        type: 'wgs84',
+        success(res){
+          let longitude = res.longitude
+          let latitude = res.latitude
+          wx.request({
+            url: 'https://api.map.baidu.com/geocoder/v2/?ak=GYz2Vp82csGhLw39EWmb6totQd0H5vBD&location=' + latitude + ',' + longitude + '&output=json',
+            header: {
+            'Content-Type': 'application/json'
+            },
+            success(result){
+              _this.city=result.data.result.addressComponent.city.substr(0,2)
+              _this.$apply();
+            }
+          })
+        }
+      })
+      // this.getitems()
+      this.methods.getitems_hot()
+      // getitems_hot()
+      // store.dispatch(getitems_hot)
+      this.Height=this.$parent.data.Height
+      // console.log(this.items_hot)
+    }
+  }
+</script>
+
+<style lang="less">
+.movie{
+
+  .top{
+    width: 100%;
+    height:88rpx;
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e6e6e6;
+    position:fixed;
+    top: 0;
+    z-index:100;
+    background: white;
+    >view{
+      display: flex;
+      align-items: center;
+      font-size: 30rpx;
+    }
+    .city{
+      width: 114rpx;
+      height: 40rpx;
+      color: #666;
+      padding-left: 30rpx;
+      .sanjiao{
+        width: 0;
+        height: 0;
+        border: 4px solid #b0b0b0;
+        border-left-color: transparent;
+        border-right-color: transparent;
+        border-bottom-color: transparent;
+        display: inline-block;
+        margin-left: 4px;
+        margin-top: 5px;
+      }
+    }
+    .nav{
+      height: 100%;
+      line-height: 88rpx;
+      >view{
+        margin: 0 24rpx;
+        height: 100%;
+        font-weight: 700;
+      }
+      .active{
+        color:#ef4238;
+        border-bottom: 1px solid #ef4238;
+      }
+    }
+    .search{
+      padding: 20rpx 30rpx 20rpx 20rpx;
+    }
+  }
+  .hot{
+    margin-top: 88rpx;
+  }
+  .soon{
+    margin-top: 88rpx;
+    .expect{
+      padding: 24rpx 0 23rpx 30rpx;
+      background-color: #fff;
+      margin-bottom: 20rpx;
+      border-bottom: 20rpx solid #e6e6e6;
+      .title{
+        margin: 0 0 24rpx;
+        font-size: 14px;
+        color: #333;
+      }
+    }
+
+  }
+}
+</style>

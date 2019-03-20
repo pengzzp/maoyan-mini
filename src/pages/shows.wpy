@@ -1,0 +1,249 @@
+<template>
+    <view class="shows">
+        <view class="cinema-info">
+            <view class="top">
+                <view>{{cinemadetail.cinemaData.nm}}</view>
+                <view>{{cinemadetail.cinemaData.addr}}</view>
+                <view @tap="map" data-info="{{cinemadetail.cinemaData}}">
+                    <image src="data:image/png;base64,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"/>
+                </view>
+            </view>
+            <view class="mid">
+                <view class="bg1" style="background:url({{swiperitems[current].img}});"></view>
+                <view class="bg2"></view>
+                <swiper 
+                class="swiper"
+                display-multiple-items="2.5"
+                previous-margin="300rpx"
+                bindchange="change"
+                current="{{current}}"
+                >
+                    <block 
+                    wx:for="{{swiperitems}}"
+                    wx:key="{{items.id}}"
+                    >
+                        <swiper-item class="swiper-item" data-current="{{index}}" @tap="changeitems">
+                            <image class="{{index==current?'active':''}}" src="{{item.img}}"/>
+                        </swiper-item>
+                    </block>
+                    <swiper-item class="swiper-item">
+                            <image/>
+                    </swiper-item>
+                    <swiper-item class="swiper-item">
+                        <image/>
+                    </swiper-item>
+                </swiper>
+            </view>
+            <view class="bot">
+                <view>
+                    <text class="title">{{cinemadetail.showData.movies[current].nm}}</text>
+                    <text class="grade">{{cinemadetail.showData.movies[current].sc=="0.0"?'暂无评分':cinemadetail.showData.movies[current].sc}}</text>
+                </view>
+                <view>
+                    {{cinemadetail.showData.movies[current].desc}}
+                </view>
+            </view>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import  wepy from 'wepy'
+    export default class Shows extends wepy.page {
+        config={
+            
+        }
+        data={
+            current:0,
+            swiperitems:[],
+            cinemadetail:{}
+        }
+        methods={
+            change(event){
+                this.current=event.detail.current
+            },
+            changeitems(event){
+                this.current=event.currentTarget.dataset.current
+            },
+            map(event){
+                // console.log(event)
+                let lat=event.currentTarget.dataset.info.lat
+                let lng=event.currentTarget.dataset.info.lng
+                let nm=event.currentTarget.dataset.info.nm
+                let addr=event.currentTarget.dataset.info.addr
+                wx.openLocation({
+                    latitude: lat,
+                    longitude: lng,
+                    name:nm,
+                    address:addr,
+                    scale: 18
+                })
+            }
+            
+        }
+        cinemaDetail(cinemaId){
+            wx.showLoading()
+            wepy.request({
+                url:'http://m.maoyan.com/ajax/cinemaDetail',
+                data:{
+                    cinemaId
+                },
+                header: {
+                    'content-type': 'application/json'
+                }
+            }).then((res)=>{
+                wx.hideLoading()
+                res.data.showData.movies.forEach(item => {
+                    item.img=item.img.replace(/w.h/,"148.208")
+                });
+                res.data.dealList.dealList.forEach(item => {
+                    item.img=item.imageUrl.replace(/w.h/,"440.0")
+                });
+                //获取信息
+                this.swiperitems=res.data.showData.movies
+                this.cinemadetail=res.data
+                this.$apply()
+                //设置头标题
+                wx.setNavigationBarTitle({
+                    title:this.cinemadetail.cinemaData.nm
+                })
+                // console.log(this.cinemadetail)
+            })
+        }
+        onLoad(option){
+            let id=option.id;
+            this.cinemaDetail(id)
+        }
+    }
+</script>
+
+<style lang="less">
+.shows{
+    .cinema-info{
+        .top{
+            width: 100%;
+            height:148rpx;
+            padding: 30rpx;
+            position: relative;
+            box-sizing: border-box;
+            >view{
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+            >view:nth-of-type(1){
+                max-width:80%;
+                font-size: 17px;
+                font-weight: 700;
+                color: #333;
+            }
+            >view:nth-of-type(2){
+                max-width:80%;
+                margin-top: 4rpx;
+                font-size: 13px;
+                color: #999;
+            }
+            >view:nth-of-type(3){
+                position: absolute;
+                right: 0;
+                top: 50%;
+                margin-top: -31rpx;
+                width:20%;
+                height: 62rpx;
+                border-left: 1px solid #d8d8d8;
+                text-align: center;
+                image{
+                    width: 38rpx;
+                    height: 44rpx;
+                    margin-top: 10rpx;
+                }
+            }
+        }
+        .mid{
+            width: 100%;
+            height: 270rpx;
+            position: relative;
+            overflow: hidden;
+            .swiper{
+                position: absolute;
+                width:100%;
+                height:100%;
+                .swiper-item{
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    image{
+                        position: relative;
+                        width: 130rpx;
+                        height:190rpx;
+                        z-index:1;
+                        overflow:visible !important;
+                        &.active{
+                            border: 2px solid white;
+                            transform: scale(1.2);
+                            transition: all 0.3s;
+                            &::after{
+                                content: "";
+                                position: absolute;
+                                display: inline-block;
+                                bottom: -20rpx;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                width: 0;
+                                height: 0;
+                                border: 10rpx solid white;
+                                border-left-color: transparent;
+                                border-right-color: transparent;
+                                border-bottom-color: transparent;
+                            }
+                        }
+                    }
+                }              
+            }
+            .bg1{
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index:-1;
+                top: 0;
+                left: 0;
+                filter: blur(30px);
+                background-position-y: 40%;
+            }
+            .bg2{
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                background-color: #40454d;
+                opacity: .55;
+            }
+        }
+        .bot{
+            width: 100%;
+            height: 133rpx;
+            padding: 22rpx 30rpx;
+            text-align: center;
+            >view:nth-of-type(1){
+                .title{
+                    font-size: 17px;
+                    color: #333;
+                    font-weight: 700;
+                }
+                .grade{
+                    color: #ffb400;
+                    font-size: 16px;
+                }
+            }
+            >view:nth-of-type(2){
+                margin-top: 4rpx;
+                height: 37rpx;
+                font-size: 13px;
+                color: #999;
+            }   
+        }
+    }
+}
+</style>

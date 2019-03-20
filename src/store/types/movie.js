@@ -1,0 +1,1 @@
+export const GETITEMS_HOT = 'GETITEMS_HOT'

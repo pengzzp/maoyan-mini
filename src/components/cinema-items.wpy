@@ -1,0 +1,136 @@
+<template>
+  <scroll-view
+    scroll-y
+    bindscrolltolower="more"
+    style="height:{{Height}}px"
+    >
+      <view 
+      class="item"
+      wx:for="{{items}}"
+      wx:key="{{item.id}}"
+      id='{{item.id}}'
+      @tap="toshows"
+      >
+        <view>
+          <text class="name">{{item.nm}}</text>
+          <view class="price"><text>{{item.sellPrice}}</text>元起</view>
+        </view>
+        <view>
+          <text class="address">{{item.addr}}</text>
+          <text class="distance">{{item.distance}}</text>
+        </view>
+        <view>
+          <text class="allowRefund" wx:if="{{items.tag&&item.tag.allowRefund>0}}">退</text>
+          <text class="endorse" wx:if="{{items.tag&&item.tag.endorse>0}}">改签</text>
+          <text class="snack" wx:if="{{items.tag&&item.tag.snack>0}}">小吃</text>
+          <text class="vipTag" wx:if="{{items.tag&&item.tag.vipTag}}">{{item.tag.vipTag}}</text>
+          <text class="hallType" wx:if="{{items.tag&&item.tag.hallType}}">{{item.tag.hallType[0]}}</text>
+        </view>
+        <view wx:if="{{item.promotion.cardPromotionTag}}">
+          <text>卡</text>
+          {{item.promotion.cardPromotionTag}}
+        </view>
+      </view>
+    </scroll-view>
+</template>
+<script>
+  import wepy from 'wepy'
+
+  export default class List extends wepy.component {
+    props={
+      items:Array
+    }
+    data={
+      Height:''
+    }
+    methods = {
+        more(){
+            console.log(0)
+            this.$emit('getmore_cinema');
+        },
+        toshows(event){
+        let id=event.currentTarget.id
+        wx.navigateTo({
+          url: `shows?id=${id}`
+        })
+      }
+    }
+
+    onLoad () {
+      this.Height=this.$parent.Height
+    }
+    watch={
+    }
+  }
+</script>
+<style lang="less" scoped>
+    .item{
+      width: 686rpx;
+      margin: 0 auto;
+      border-bottom: 1px solid #e6e6e6;
+      padding: 10rpx 0;
+      >view{
+        display: flex;
+        margin: 10rpx 0;
+        &:nth-of-type(1){
+          .name{
+            max-width: 460rpx;
+            font-size: 16px;
+            color: #000;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap; 
+          }
+          .price{
+            font-size: 11px;
+            color: #f03d37;
+            text{
+              font-size: 18px;
+            }
+          }
+        }
+        &:nth-of-type(2){
+          justify-content: space-between;
+          font-size: 13px;
+          color: #666;  
+          .address{
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+          }
+        }
+        &:nth-of-type(3){
+          >text{
+            display: inline-block;
+            padding: 0 6rpx;
+            height: 30rpx;
+            line-height: 30rpx;
+            border-radius: 2px;
+            font-size: 12px;
+            margin-right: 10rpx;
+          }
+          .snack,.vipTag{
+            color: #f90;
+            border: 1px solid #f90;
+          }
+          .hallType,.allowRefund,.endorse{
+            color: #589daf;
+            border: 1px solid #589daf;
+          }
+        }
+        &:nth-of-type(4){
+          font-size: 11px;
+          color: #999;
+          >text{
+            width: 30rpx;
+            height: 30rpx;
+            text-align: center;
+            line-height: 30rpx;
+            color: white;
+            background: rgb(12, 186, 199);
+            border-radius: 2px;
+          }
+        }
+      }
+    }
+</style>

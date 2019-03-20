@@ -1,0 +1,211 @@
+<template>
+    <view class="search">
+        <view class="top">
+            <view>
+                <icon type="search" size="14" color="#b2b2b2"/>
+                <input type="text" placeholder="搜影院" @input="search" />
+            </view>
+            <view @tap="back">
+                取消
+            </view>
+        </view>
+        <view class="main" wx:if="{{items.length!=0}}">
+            <view class="title">影院</view>
+            <list :items.sync="items"/>
+        </view>
+        <view wx:else class="history">
+            <view wx:for="{{items_history}}" wx:key="{{index}}">
+                <view class="icon"></view>
+                <text>{{item}}</text>
+                <view class="cancel" data-val="{{item}}" @tap="del">X</view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import List from "../components/cinema-items";
+  var timer=0;
+
+  export default class Search extends wepy.page {
+    config={
+      navigationBarTitleText:"搜索",
+      backgroundColor:'#f5f5f5'
+    }
+    components={
+      list:List
+    }
+    data={
+        items:[],
+        items_history:[]
+    }
+    methods={
+        search(event){
+            clearTimeout(timer)
+            timer=setTimeout(()=>{
+                wx.showLoading()
+                wx.request({
+                    url:'http://m.maoyan.com/ajax/search',
+                    data:{
+                        kw:event.detail.value,
+                        cityId: 1,
+                        stype: 2
+                    },
+                    success:(res)=>{
+                        wx.hideLoading()
+                        if(JSON.stringify(res.data)!="{}"){
+                            //搜索成功时
+                            this.items=res.data.cinemas.list.slice(0,3)
+                            this.$apply()
+                            wx.getStorage({
+                                key: 'cinema',
+                                success: function(res) {
+                                    // console.log(event.detail.value)
+                                    if(res.data.indexOf(event.detail.value)=='-1'){
+                                        //当缓存中没有这次的数据时，放入缓存中
+                                        wx.setStorage({
+                                            key:"cinema",
+                                            data:res.data.concat(event.detail.value)
+                                        })
+                                    }
+                                                
+                                },
+                                fail:function(res){
+                                    //第一次缓存数据的时候，get不到，会走到fail里来
+                                    wx.setStorage({
+                                            key:"cinema",
+                                            data:[event.detail.value]
+                                        })
+                                }
+                            })
+                        }else{
+                            //搜索失败没有数据时
+                            this.items=[]
+                            wx.getStorage({
+                                key:'cinema',
+                                success:(res)=>{
+                                    this.items_history=res.data
+                                    this.$apply()
+                                }
+                            })
+                        }
+                    }
+                })
+            },1000) 
+        },
+        back(){
+            wx.navigateBack()
+        },
+        del(event){
+            let val=event.currentTarget.dataset.val
+            wx.getStorage({
+                key:'cinema',
+                success:(res)=>{
+                    let index=res.data.indexOf(val)
+                    res.data.splice(index,1)
+                    wx.setStorage({
+                        key:"cinema",
+                        data:res.data
+                    })
+                }
+            })
+            // console.log(event)
+            this.items_history.splice(this.items_history.indexOf(val),1)
+        }
+    }
+    watch={
+        // items_history(news,olds){
+        //     console.log(news,olds)
+        // }
+    }
+    onLoad(){
+        wx.getStorage({
+            key:'cinema',
+            success:(res)=>{
+                this.items_history=res.data
+            }
+        })
+    }
+  }
+</script>
+<style lang="less">
+page{
+  background: #f5f5f5;
+  height: 100%;
+}
+.search{
+    height: 100%;
+    .top{
+        width: 100%;
+        height: 94rpx;
+        display: flex;
+        align-items: center;
+        background-color: #f5f5f5;
+        border-bottom: 1px solid #e5e5e5;
+        padding: 0 20rpx;
+        >view:nth-of-type(1){
+            width: 80%;
+            height: 60rpx;
+            display: flex;
+            align-items: center;
+            background: white;
+            padding-left: 10rpx;
+            input{
+                font-size: 13px;
+                color: #333;
+                margin-left: 10rpx;
+            }
+        }
+        >view:nth-of-type(2){
+            width: 16%;
+            font-size: 16px;
+            color: #f03d37;
+            text-align: center;
+        }
+    }
+    .main{
+        .title{
+            font-size: 15px;
+            color: #999;
+            padding: 18rpx 30rpx;
+            border-bottom: 1px solid #e6e6e6;
+        }
+    }
+    .history{
+        >view{
+            height: 88rpx;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left:20rpx;
+            background: white;
+            .icon{
+                width: 30rpx;
+                height: 30rpx;
+                margin-right: 10px;
+                background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAAAVFBMVEUAAACrq6u2traqqqqrq6utra2vr6+qqqqqqqqrq6urq6urq6urq6usrKyqqqqrq6urq6urq6urq6urq6uqqqqsrKyrq6uqqqqvr6+qqqqrq6uqqqqL2Pn/AAAAG3RSTlMA7gf3nBcL5NSxqHFJNN/IwoWDeWNQTyQgNumZiWHTAAABnklEQVRIx5SS2xKDIAxEIwJVQGu91vb//7PdyEynigL74DjiSZZNKKjVyq4tyrJoO2kbSpOYTfH+U2FmEccGT+3YIYKOt/eJbuMF5ir/V1lbtygh1OJsXfqPlTvjHt6WnDTRT3qS3v4jiOl6a9brwFm/ta0DZ8/NplQUlJKb3eeBe3ECFzNrOLfXjtTc767oQurOPf/d8v2MiMzY8D0PeRqKyuyydexTxEHBbn/zrJCLogQpJFSR14gyDSWpwb+j748qkhIl4U4QNGBfDkZROWgWOzRwQyxiT6kg9VhntJzxotNBjUazn42kdJCknzkKTDngBItEK6LROaBGPCtZXr8ckBfbsmObB1pOpcPy5YFY7Y7a73PJA5fvUcuhqjxQcayISOSBAoP4dF4GJwDDQAzrAh2g+y/ap0BwGKR/IOR8tnMfFD54X1X4qvfjCD/OPQ7hcSCAgQWA5AaWHCIfSOQvazXQWrHIGy8y1rHBOjCric0Ke9xgj9mQawTU0MkxV4O1RnkuD7mu9ILUK1kvgb129qLbq3Uv8/v78D0AP8WcS0GTLxhaAAAAAElFTkSuQmCC") no-repeat;
+                background-size: cover;
+            }
+            text{
+                width: 590rpx;
+                display: inline-block;
+                font-size: 15px;
+                color: #333;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+            .cancel{
+                width: 80rpx;
+                height: 100%;
+                font-size: 16px;
+                text-align: center;
+                color: #e5e5e5;
+                line-height: 88rpx;
+            }
+        }
+    }
+}
+</style>
